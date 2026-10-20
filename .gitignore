@@ -1,0 +1,21 @@
+node_modules/
+.output/
+.wxt/
+.plasmo/
+dist/
+build/
+*.log
+.DS_Store
+.env
+.env.local
+.vscode/
+.idea/
+coverage/
+.nyc_output/
+*.zip
+playwright-report/
+test-results/
+
+# Local-only launch playbook (paste-ready post content). Lives with the
+# project but is not part of the published plugin.
+LAUNCH.md

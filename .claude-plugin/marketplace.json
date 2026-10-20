@@ -1,0 +1,31 @@
+{
+  "name": "chrome-extension-builder-marketplace",
+  "description": "A single-plugin marketplace that ships Chrome Extension Builder. Also available on the Anthropic community marketplace as chrome-extension-builder@claude-community.",
+  "owner": {
+    "name": "harry-harish"
+  },
+  "plugins": [
+    {
+      "name": "chrome-extension-builder",
+      "displayName": "Chrome Extension Builder",
+      "source": "./",
+      "description": "Claude Code plugin for building, validating, testing, and shipping Manifest V3 Chrome extensions.",
+      "homepage": "https://github.com/harry-harish/chrome-extension-builder",
+      "repository": "https://github.com/harry-harish/chrome-extension-builder",
+      "license": "MIT",
+      "category": "development",
+      "tags": [
+        "claude-code",
+        "claude-plugin",
+        "chrome-extension",
+        "manifest-v3",
+        "browser-extension",
+        "wxt",
+        "plasmo",
+        "crxjs",
+        "typescript",
+        "webstore"
+      ]
+    }
+  ]
+}

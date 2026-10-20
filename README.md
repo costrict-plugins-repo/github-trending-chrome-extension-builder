@@ -1,0 +1,170 @@
+# Chrome Extension Builder
+
+[![CI](https://github.com/harry-harish/chrome-extension-builder/actions/workflows/validate.yml/badge.svg)](https://github.com/harry-harish/chrome-extension-builder/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#install)
+[![GitHub release](https://img.shields.io/github/v/release/harry-harish/chrome-extension-builder)](https://github.com/harry-harish/chrome-extension-builder/releases)
+[![Available on @claude-community](https://img.shields.io/badge/Claude%20community%20marketplace-chrome--extension--builder-d97757)](https://github.com/anthropics/claude-plugins-community)
+
+A Claude Code plugin for building and shipping Manifest V3 Chrome extensions without tripping over the usual stuff: manifest quirks, permission sprawl, CSP mistakes, broken builds, and Web Store submission prep.
+
+It scaffolds new extensions, audits existing ones, adds common extension surfaces, runs validation, and prepares release artifacts. It works with WXT, Plasmo, CRXJS, and vanilla setups, with WXT as the default path.
+
+## Install
+
+Inside Claude Code, from the Anthropic community marketplace:
+
+```bash
+/plugin marketplace add anthropics/claude-plugins-community
+/plugin install chrome-extension-builder@claude-community
+```
+
+Or straight from this repo (always the latest release):
+
+```bash
+/plugin marketplace add harry-harish/chrome-extension-builder
+/plugin install chrome-extension-builder@chrome-extension-builder-marketplace
+```
+
+For local development:
+
+```bash
+git clone https://github.com/harry-harish/chrome-extension-builder
+claude --plugin-dir ./chrome-extension-builder
+```
+
+## Start here
+
+```bash
+/chrome-ext:new
+```
+
+That launches a guided workflow for planning, scaffolding, validating, testing, and preparing an MV3 extension for release.
+
+## Why this exists
+
+Building the feature is usually not the hardest part of extension work.
+
+The time sink is everything around it: choosing the right framework, structuring background and content logic correctly, keeping permissions tight, satisfying MV3 rules, getting tests to pass, and cleaning things up for Chrome Web Store review. This plugin is built to handle that layer well.
+
+## Commands
+
+- `/chrome-ext:new` — Start a new extension with a guided multi-phase workflow.
+- `/chrome-ext:validate` — Run manifest, CSP, permission, and lint checks on the current project.
+- `/chrome-ext:add-feature` — Add a popup, options page, content script, side panel, devtools panel, or background handler.
+- `/chrome-ext:publish` — Prepare store assets, disclosure text, and packaged output for submission.
+- `/chrome-ext:migrate-mv2` — Audit an MV2 codebase and generate an MV3 migration plan.
+
+## Specialist agents
+
+- `extension-architect` — Chooses structure, capabilities, and framework direction.
+- `manifest-auditor` — Reviews `manifest.json`, flags risky permissions, checks CSP, and rejects MV2-only patterns.
+- `extension-test-runner` — Runs build, lint, and smoke-test workflows in isolation.
+
+Tool grants are deliberately minimal — read/analyze agents can't write, and no agent can publish:
+
+| Agent | Read | Grep/Glob | Bash | WebFetch | Edit/Write |
+|-------|:----:|:---------:|:----:|:--------:|:----------:|
+| `extension-architect` | ✓ | ✓ | — | ✓ | — |
+| `manifest-auditor` | ✓ | ✓ | ✓ | — | — |
+| `extension-test-runner` | ✓ | ✓ | ✓ | — | — |
+
+The architect plans but never executes shell or edits files; the auditor and test-runner can run validators/builds but never modify your code.
+
+## Safety rails
+
+- A `PostToolUse` hook runs the manifest, CSP, and permission validators after any `manifest.json` write. The edit is applied first; if a critical issue is found, the hook flags it (exit 2) so the session fixes it before continuing.
+- A `PreToolUse` hook blocks live publish commands unless they are explicitly confirmed.
+- The plugin defaults to Manifest V3 only.
+
+## Framework support
+
+- WXT — default recommendation
+- Plasmo — supported
+- CRXJS — supported
+- Vanilla MV3 — supported
+
+Use the one that matches your project. The plugin should help you move faster, not force a rewrite for style points.
+
+## Runtime requirements
+
+- Node.js 18+
+- pnpm, npm, yarn, or bun
+- Python 3.10+ for validator scripts
+- A POSIX shell (`bash`) and `zip` on `PATH`. macOS and Linux have these by default; **on Windows, run the plugin inside WSL or Git Bash** — the scaffold, validate, and publish flows invoke bundled `.sh` scripts (and `build-zip.sh` shells out to `zip` for vanilla/CRXJS projects), which won't run in plain PowerShell or `cmd`.
+- Playwright Chromium for E2E tests
+- Optional GitHub and Chrome Web Store credentials for publishing flows
+
+## Defaults
+
+- Manifest V3 only
+- TypeScript-first output
+- `chrome.activeTab` preferred over broad host permissions
+- Strict CSP, no remote code, no `eval`
+- Reproducible builds
+- `_locales`-based i18n by default
+
+## What it checks
+
+The validator path looks for problems that routinely waste time during extension development and review:
+
+- Invalid MV3 manifest fields
+- Overbroad or suspicious permissions
+- CSP issues like `unsafe-inline` and `unsafe-eval`
+- Missing referenced files
+- Old MV2 patterns that should not ship
+- Packaging and lint problems that break release flow
+
+## Non-goals
+
+This plugin does not:
+
+- Guarantee Chrome Web Store approval
+- Publish live by accident
+- Make unsafe permissions acceptable
+- Turn a weak product idea into a good extension
+- Replace framework docs for WXT, Plasmo, or CRXJS
+
+## Known rough edges
+
+- Firefox and Edge workflows are not the primary target yet.
+- Existing repos with unusual layouts may need cleanup before automation works well.
+- Store submission details can change faster than tooling does.
+- Some UI and product decisions still need a human with taste.
+- Windows users need WSL or Git Bash; the helper scripts are not yet ported to a cross-platform runtime ([#5](https://github.com/harry-harish/chrome-extension-builder/issues/5)).
+
+## A good fit
+
+This plugin is useful if you are:
+
+- Starting a new MV3 extension
+- Migrating older extension code
+- Adding features to an existing extension without breaking structure
+- Preparing for Web Store submission and want stricter checks before upload
+
+## Repository structure
+
+```text
+.claude-plugin/   # plugin.json + marketplace.json
+agents/           # extension-architect, manifest-auditor, extension-test-runner
+commands/         # the 5 /chrome-ext:* slash commands
+hooks/            # PostToolUse / PreToolUse / UserPromptSubmit
+skills/           # framework + domain skills (WXT, Plasmo, CRXJS, security, i18n, ...)
+tests/            # validator fixtures + drift / guardrail checks
+README.md
+CHANGELOG.md
+LICENSE
+SECURITY.md
+PRIVACY.md
+CONTRIBUTING.md
+```
+
+## Validate before release
+
+```bash
+/chrome-ext:validate
+```
+
+## License
+
+MIT
